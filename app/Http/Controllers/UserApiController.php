@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Client;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -55,7 +56,7 @@ class UserApiController extends Controller
 
             return response()->json(['message' => 'User Logged In Successfully!', 'user' => $user, 'access_token' => $token], 200);
         } else {
-            return response()->json(['message' => 'Invalid Credentials'], 422);
+            return response()->json(['message' => 'Invalid Credentials'], 200);
         }
     }
 
@@ -79,5 +80,21 @@ class UserApiController extends Controller
         ]);
 
         return response()->json(['message' => 'Employee Added Successfully!', 'user' => $user], 201);
+    }
+
+    public function addClient(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'website' => 'nullable|url|max:255',
+            'description' => 'nullable|string',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $client = Client::create($request->all());
+
+        return response()->json(['message' => 'Client Added Successfully!', 'client' => $client], 201);
     }
 }
