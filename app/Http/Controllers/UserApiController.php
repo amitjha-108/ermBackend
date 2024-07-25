@@ -41,7 +41,7 @@ class UserApiController extends Controller
 
         $token = $user->createToken('auth-token')->accessToken;
 
-        return response()->json(['user' => $user, 'token' => $token], 201);
+        return response()->json(['user' => $user, 'access_token' => $token], 201);
     }
 
     // Login API
@@ -53,7 +53,7 @@ class UserApiController extends Controller
             $user = Auth::user();
             $token = $user->createToken('auth-token')->accessToken;
 
-            return response()->json(['user' => $user, 'token' => $token], 200);
+            return response()->json(['user' => $user, 'access_token' => $token], 200);
         } else {
             return response()->json(['message' => 'Invalid Credentials'], 422);
         }
