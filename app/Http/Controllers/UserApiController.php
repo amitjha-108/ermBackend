@@ -66,6 +66,7 @@ class UserApiController extends Controller
             'name' => 'required|string|max:255',
             'contact' => 'required|string|max:20|unique:users',
             'role' => 'required|string',
+            'officialID' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -76,6 +77,7 @@ class UserApiController extends Controller
             'name' => $request->name,
             'contact' => $request->contact,
             'role' => $request->role,
+            'officialID' => $request->officialID,
             'password' => Hash::make($request->contact),
         ]);
 
@@ -96,5 +98,12 @@ class UserApiController extends Controller
         $client = Client::create($request->all());
 
         return response()->json(['message' => 'Client Added Successfully!', 'client' => $client], 201);
+    }
+
+    public function getClients()
+    {
+        $clients = Client::all();
+
+        return response()->json(['message' => 'Clients retrieved successfully!', 'clients' => $clients], 200);
     }
 }
