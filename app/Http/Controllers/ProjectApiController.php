@@ -41,4 +41,11 @@ class ProjectApiController extends Controller
 
         return response()->json(['message' => 'Project Added Successfully!', 'project' => $project], 201);
     }
+
+    public function getProjects()
+    {
+        $projects = Project::all();
+
+        return response()->json(['message' => 'Projects Retrieved Successfully!', 'projects' => $projects], 200);
+    }
 }
