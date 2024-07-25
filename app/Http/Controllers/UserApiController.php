@@ -53,7 +53,7 @@ class UserApiController extends Controller
             $user = Auth::user();
             $token = $user->createToken('auth-token')->accessToken;
 
-            return response()->json(['user' => $user, 'access_token' => $token], 200);
+            return response()->json(['message' => 'User Logged In Successfully!', 'user' => $user, 'access_token' => $token], 200);
         } else {
             return response()->json(['message' => 'Invalid Credentials'], 422);
         }
@@ -78,6 +78,6 @@ class UserApiController extends Controller
             'password' => Hash::make($request->contact),
         ]);
 
-        return response()->json(['user' => $user], 201);
+        return response()->json(['message' => 'Employee Added Successfully!', 'user' => $user], 201);
     }
 }
