@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class UserApiController extends Controller
@@ -100,6 +101,18 @@ class UserApiController extends Controller
         return response()->json(['message' => 'Data Retrieved Successfully!', 'employees' => $employees], 200);
     }
 
+    public function deleteEmployee($id)
+    {
+        $employee = User::find($id);
+
+        if (! $employee) {
+            return response()->json(['error' => 'Employee not found'], 404);
+        }
+        $employee->delete();
+
+        return response()->json(['message' => 'Employee deleted successfully!'], 200);
+    }
+
     public function addClient(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -116,11 +129,49 @@ class UserApiController extends Controller
         return response()->json(['message' => 'Client Added Successfully!', 'client' => $client], 201);
     }
 
+    public function updateClient(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'nullable|string|max:255',
+            'website' => 'nullable|url|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $client = Client::find($id);
+
+        if (! $client) {
+            return response()->json(['error' => 'Client not found'], 404);
+        }
+
+        $client->name = $request->input('name', $client->name);
+        $client->website = $request->input('website', $client->website);
+        $client->description = $request->input('description', $client->description);
+        $client->save();
+
+        return response()->json(['message' => 'Client Updated Successfully!', 'client' => $client], 200);
+    }
+
     public function getClients()
     {
         $clients = Client::all();
 
         return response()->json(['message' => 'Clients retrieved successfully!', 'clients' => $clients], 200);
+    }
+
+    public function deleteClient($id)
+    {
+        $client = Client::find($id);
+
+        if (! $client) {
+            return response()->json(['error' => 'Client not found'], 404);
+        }
+        $client->delete();
+
+        return response()->json(['message' => 'Client deleted successfully!'], 200);
     }
 
     public function updateProfile(Request $request)

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class ProjectApiController extends Controller
 {
@@ -47,5 +48,17 @@ class ProjectApiController extends Controller
         $projects = Project::all();
 
         return response()->json(['message' => 'Projects Retrieved Successfully!', 'projects' => $projects], 200);
+    }
+
+    public function deleteProject($id)
+    {
+        $project = Project::find($id);
+
+        if (! $project) {
+            return response()->json(['error' => 'Project not found'], 404);
+        }
+        $project->delete();
+
+        return response()->json(['message' => 'Project deleted successfully!'], 200);
     }
 }
