@@ -112,6 +112,103 @@ class UserApiController extends Controller
         return response()->json(['user' => $user], 200);
     }
 
+    public function updateEmployee(Request $request, $id)
+    {
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'contact' => 'required|string|max:20|unique:users,contact,' . $user->id,
+            'role' => 'required|string',
+            'officialID' => 'nullable|string',
+            'email' => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'address' => 'nullable|string',
+            'designation' => 'nullable|string',
+            'officeLocation' => 'nullable|string',
+            'department' => 'nullable|string',
+            'education' => 'nullable|string',
+            'pan' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'aadhar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'passbook' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'offerLetter' => 'nullable|mimes:pdf|max:10240',
+            'PFNO' => 'nullable|string',
+            'ESINO' => 'nullable|string',
+            'joiningDate' => 'nullable|string',
+            'leavingDate' => 'nullable|string',
+            'jobStatus' => 'nullable|string',
+            'about' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $user->name = $request->input('name', $user->name);
+        $user->contact = $request->input('contact', $user->contact);
+        $user->role = $request->input('role', $user->role);
+        $user->officialID = $request->input('officialID', $user->officialID);
+        $user->email = $request->input('email', $user->email);
+        $user->address = $request->input('address', $user->address);
+        $user->designation = $request->input('designation', $user->designation);
+        $user->officeLocation = $request->input('officeLocation', $user->officeLocation);
+        $user->department = $request->input('department', $user->department);
+        $user->education = $request->input('education', $user->education);
+        $user->PFNO = $request->input('PFNO', $user->PFNO);
+        $user->ESINO = $request->input('ESINO', $user->ESINO);
+        $user->joiningDate = $request->input('joiningDate', $user->joiningDate);
+        $user->leavingDate = $request->input('leavingDate', $user->leavingDate);
+        $user->jobStatus = $request->input('jobStatus', $user->jobStatus);
+        $user->about = $request->input('about', $user->about);
+
+        if ($request->hasFile('photo')) {
+            if ($user->photo) {
+                Storage::disk('public')->delete($user->photo);
+            }
+            $photo = $request->file('photo');
+            $user->photo = $photo->store('images', 'public');
+        }
+
+        if ($request->hasFile('pan')) {
+            if ($user->pan) {
+                Storage::disk('public')->delete($user->pan);
+            }
+            $pan = $request->file('pan');
+            $user->pan = $pan->store('pan', 'public');
+        }
+
+        if ($request->hasFile('aadhar')) {
+            if ($user->aadhar) {
+                Storage::disk('public')->delete($user->aadhar);
+            }
+            $aadhar = $request->file('aadhar');
+            $user->aadhar = $aadhar->store('aadhar', 'public');
+        }
+
+        if ($request->hasFile('passbook')) {
+            if ($user->passbook) {
+                Storage::disk('public')->delete($user->passbook);
+            }
+            $passbook = $request->file('passbook');
+            $user->passbook = $passbook->store('passbook', 'public');
+        }
+
+        if ($request->hasFile('offerLetter')) {
+            if ($user->offerLetter) {
+                Storage::disk('public')->delete($user->offerLetter);
+            }
+            $offerLetter = $request->file('offerLetter');
+            $user->offerLetter = $offerLetter->store('offerLetter', 'public');
+        }
+        $user->save();
+
+        return response()->json(['message' => 'Employee updated successfully!', 'user' => $user], 200);
+    }
+
+
     public function deleteEmployee($id)
     {
         $employee = User::find($id);

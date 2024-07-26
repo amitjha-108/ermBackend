@@ -9,6 +9,7 @@ Route::post('login', [UserApiController::class, 'login']);
 //routes accessed by admin and super-admin only
 Route::middleware(['auth:api', 'role.check:1,2'])->group(function () {
     Route::post('add-employee', [UserApiController::class, 'addEmployee']);
+    Route::post('update-employees/{id}', [UserApiController::class, 'updateEmployee']);
     Route::get('/employees/{id}', [UserApiController::class, 'getEmployeeById']);
     Route::delete('/employees/{id}', [UserApiController::class, 'deleteEmployee']);
 
