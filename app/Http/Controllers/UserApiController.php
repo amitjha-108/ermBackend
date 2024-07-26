@@ -60,6 +60,7 @@ class UserApiController extends Controller
         }
     }
 
+    //add employee with some details to create username and password
     public function addEmployee(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -84,6 +85,7 @@ class UserApiController extends Controller
         return response()->json(['message' => 'Employee Added Successfully!', 'user' => $user], 201);
     }
 
+    //list all employees with role filter
     public function getEmployees(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -119,5 +121,96 @@ class UserApiController extends Controller
         $clients = Client::all();
 
         return response()->json(['message' => 'Clients retrieved successfully!', 'clients' => $clients], 200);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
+            'photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'address' => 'required|string',
+            'designation' => 'required|string',
+            'officeLocation' => 'required|string',
+            'department' => 'required|string',
+            'education' => 'required|string',
+            'pan' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'aadhar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'passbook' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'offerLetter' => 'nullable|mimes:pdf|max:10240',
+            'PFNO' => 'nullable|string',
+            'ESINO' => 'nullable|string',
+            'joiningDate' => 'nullable|string',
+            'leavingDate' => 'nullable|string',
+            'jobStatus' => 'nullable|string',
+            'about' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        if ($request->hasFile('photo')) {
+            if ($user->photo) {
+                Storage::disk('public')->delete($user->photo);
+            }
+            $photo = $request->file('photo');
+            $photoPath = $photo->store('images', 'public');
+            $user->photo = $photoPath;
+        }
+
+        if ($request->hasFile('pan')) {
+            if ($user->pan) {
+                Storage::disk('public')->delete($user->pan);
+            }
+            $pan = $request->file('pan');
+            $panPath = $pan->store('pan', 'public');
+            $user->pan = $panPath;
+        }
+
+        if ($request->hasFile('aadhar')) {
+            if ($user->aadhar) {
+                Storage::disk('public')->delete($user->aadhar);
+            }
+            $aadhar = $request->file('aadhar');
+            $aadharPath = $aadhar->store('aadhar', 'public');
+            $user->aadhar = $aadharPath;
+        }
+
+        if ($request->hasFile('passbook')) {
+            if ($user->passbook) {
+                Storage::disk('public')->delete($user->passbook);
+            }
+            $passbook = $request->file('passbook');
+            $passbookPath = $passbook->store('passbook', 'public');
+            $user->passbook = $passbookPath;
+        }
+
+        if ($request->hasFile('offerLetter')) {
+            if ($user->offerLetter) {
+                Storage::disk('public')->delete($user->offerLetter);
+            }
+            $offerLetter = $request->file('offerLetter');
+            $offerLetterPath = $offerLetter->store('offerLetter', 'public');
+            $user->offerLetter = $offerLetterPath;
+        }
+
+        $user->email = $request->input('email', $user->email);
+        $user->address = $request->input('address', $user->address);
+        $user->designation = $request->input('designation', $user->designation);
+        $user->officeLocation = $request->input('officeLocation', $user->officeLocation);
+        $user->department = $request->input('department', $user->department);
+        $user->education = $request->input('education', $user->education);
+        $user->PFNO = $request->input('PFNO', $user->PFNO);
+        $user->ESINO = $request->input('ESINO', $user->ESINO);
+        $user->joiningDate = $request->input('joiningDate', $user->joiningDate);
+        $user->leavingDate = $request->input('leavingDate', $user->leavingDate);
+        $user->jobStatus = $request->input('jobStatus', $user->jobStatus);
+        $user->about = $request->input('about', $user->about);
+
+        $user->save();
+
+        return response()->json(['message' => 'Profile updated successfully!', 'user' => $user], 200);
     }
 }
