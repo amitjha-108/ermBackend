@@ -9,6 +9,7 @@ Route::post('login', [UserApiController::class, 'login']);
 //routes accessed by admin and super-admin only
 Route::middleware(['auth:api', 'role.check:1,2'])->group(function () {
     Route::post('add-employee', [UserApiController::class, 'addEmployee']);
+    Route::get('/employees/{id}', [UserApiController::class, 'getEmployeeById']);
     Route::delete('/employees/{id}', [UserApiController::class, 'deleteEmployee']);
 
     Route::post('add-client', [UserApiController::class, 'addClient']);
@@ -17,6 +18,7 @@ Route::middleware(['auth:api', 'role.check:1,2'])->group(function () {
 
     Route::post('add-project', [ProjectApiController::class, 'addProject']);
     Route::post('update-projects/{id}', [ProjectApiController::class, 'updateProject']);
+    Route::get('/projects/{id}', [ProjectApiController::class, 'getProjectById']);
     Route::delete('/projects/{id}', [ProjectApiController::class, 'deleteProject']);
 
 

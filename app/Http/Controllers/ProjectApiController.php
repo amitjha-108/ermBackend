@@ -91,6 +91,18 @@ class ProjectApiController extends Controller
         return response()->json(['message' => 'Projects Retrieved Successfully!', 'projects' => $projects], 200);
     }
 
+    public function getProjectById($id)
+    {
+        $project = Project::find($id);
+
+        if (!$project) {
+            return response()->json(['error' => 'Project not found.'], 404);
+        }
+
+        return response()->json(['project' => $project], 200);
+    }
+
+
     public function deleteProject($id)
     {
         $project = Project::find($id);

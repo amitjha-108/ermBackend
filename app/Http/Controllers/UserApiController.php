@@ -101,6 +101,17 @@ class UserApiController extends Controller
         return response()->json(['message' => 'Data Retrieved Successfully!', 'employees' => $employees], 200);
     }
 
+    public function getEmployeeById($id)
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json(['error' => 'Employee not found.'], 404);
+        }
+
+        return response()->json(['user' => $user], 200);
+    }
+
     public function deleteEmployee($id)
     {
         $employee = User::find($id);
