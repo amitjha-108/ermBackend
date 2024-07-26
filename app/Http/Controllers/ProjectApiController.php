@@ -43,6 +43,47 @@ class ProjectApiController extends Controller
         return response()->json(['message' => 'Project Added Successfully!', 'project' => $project], 201);
     }
 
+    public function updateProject(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'nullable|string',
+            'client' => 'nullable|string',
+            'location' => 'nullable|string',
+            'startDate' => 'nullable|string',
+            'endDate' => 'nullable|string',
+            'status' => 'nullable|string',
+            'projectType' => 'nullable|string',
+            'projectDescription' => 'nullable|string',
+            'projectCost' => 'nullable|string',
+            'developmentArea' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $project = Project::find($id);
+
+        if (!$project) {
+            return response()->json(['error' => 'Project not found.'], 404);
+        }
+
+        $project->update($request->only([
+            'name',
+            'client',
+            'location',
+            'startDate',
+            'endDate',
+            'status',
+            'projectType',
+            'projectDescription',
+            'projectCost',
+            'developmentArea',
+        ]));
+
+        return response()->json(['message' => 'Project updated successfully!', 'project' => $project], 200);
+    }
+
     public function getProjects()
     {
         $projects = Project::all();

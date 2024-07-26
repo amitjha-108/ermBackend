@@ -16,6 +16,7 @@ Route::middleware(['auth:api', 'role.check:1,2'])->group(function () {
     Route::delete('/clients/{id}', [UserApiController::class, 'deleteClient']);
 
     Route::post('add-project', [ProjectApiController::class, 'addProject']);
+    Route::post('update-projects/{id}', [ProjectApiController::class, 'updateProject']);
     Route::delete('/projects/{id}', [ProjectApiController::class, 'deleteProject']);
 
 
