@@ -34,5 +34,7 @@ class User extends Authenticatable
         'leavingDate',
         'jobStatus',
         'about',
+        'salary',
+        'dob',
     ];
 }

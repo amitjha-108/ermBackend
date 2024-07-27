@@ -141,6 +141,8 @@ class UserApiController extends Controller
             'leavingDate' => 'nullable|string',
             'jobStatus' => 'nullable|string',
             'about' => 'nullable|string',
+            'dob' => 'nullable|string',
+            'salary' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -163,6 +165,8 @@ class UserApiController extends Controller
         $user->leavingDate = $request->input('leavingDate', $user->leavingDate);
         $user->jobStatus = $request->input('jobStatus', $user->jobStatus);
         $user->about = $request->input('about', $user->about);
+        $user->dob = $request->input('dob', $user->dob);
+        $user->salary = $request->input('salary', $user->salary);
 
         if ($request->hasFile('photo')) {
             if ($user->photo) {
@@ -304,6 +308,8 @@ class UserApiController extends Controller
             'leavingDate' => 'nullable|string',
             'jobStatus' => 'nullable|string',
             'about' => 'nullable|string',
+            'dob' => 'nullable|string',
+            'salary' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -367,6 +373,8 @@ class UserApiController extends Controller
         $user->leavingDate = $request->input('leavingDate', $user->leavingDate);
         $user->jobStatus = $request->input('jobStatus', $user->jobStatus);
         $user->about = $request->input('about', $user->about);
+        $user->dob = $request->input('dob', $user->dob);
+        $user->salary = $request->input('salary', $user->salary);
 
         $user->save();
 

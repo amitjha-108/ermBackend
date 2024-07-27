@@ -36,6 +36,8 @@ return new class extends Migration
             $table->string('leavingDate')->nullable();
             $table->string('jobStatus')->nullable();
             $table->string('about')->nullable();
+            $table->string('dob')->nullable();
+            $table->string('salary')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
