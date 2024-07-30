@@ -53,6 +53,7 @@ class UserApiController extends Controller
 
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
+            $user->makeHidden('password');
             $token = $user->createToken('auth-token')->accessToken;
 
             return response()->json(['message' => 'User Logged In Successfully!', 'user' => $user, 'access_token' => $token], 200);
@@ -292,7 +293,7 @@ class UserApiController extends Controller
 
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
-            'photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'address' => 'required|string',
             'designation' => 'required|string',
             'officeLocation' => 'required|string',
@@ -310,6 +311,7 @@ class UserApiController extends Controller
             'about' => 'nullable|string',
             'dob' => 'nullable|string',
             'salary' => 'nullable|string',
+            'password' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -375,6 +377,7 @@ class UserApiController extends Controller
         $user->about = $request->input('about', $user->about);
         $user->dob = $request->input('dob', $user->dob);
         $user->salary = $request->input('salary', $user->salary);
+        $user->password = Hash::make($request->input('password', $user->password));
 
         $user->save();
 
