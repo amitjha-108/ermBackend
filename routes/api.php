@@ -22,6 +22,9 @@ Route::middleware(['auth:api', 'role.check:1,2'])->group(function () {
     Route::get('/projects/{id}', [ProjectApiController::class, 'getProjectById']);
     Route::delete('/projects/{id}', [ProjectApiController::class, 'deleteProject']);
 
+    Route::get('/list-leave-applications', [UserApiController::class, 'getAllLeaves']);
+    Route::post('/update-leave-status/{leaveId}', [UserApiController::class, 'updateLeaveStatus']);
+
 
 });
 
@@ -36,4 +39,8 @@ Route::middleware(['auth:api', 'role.check:1,2,3,4'])->group(function () {
     Route::post('update-profile', [UserApiController::class, 'updateProfile']);
     Route::get('get-clients', [UserApiController::class, 'getClients']);
     Route::get('get-projects', [ProjectApiController::class, 'getProjects']);
+    Route::post('/apply-leave', [UserApiController::class, 'applyLeave']);
+    Route::get('/my-leave-applications', [UserApiController::class, 'getUserLeaves']);
+    Route::post('/make-attendance', [UserApiController::class, 'makeAttendance']);
+
 });

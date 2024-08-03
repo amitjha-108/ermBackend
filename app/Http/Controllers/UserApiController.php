@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use App\Models\User;
+use App\Models\Leave;
+use App\Models\Attendance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class UserApiController extends Controller
 {
@@ -383,4 +386,133 @@ class UserApiController extends Controller
 
         return response()->json(['message' => 'Profile updated successfully!', 'user' => $user], 200);
     }
+
+    public function applyLeave(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'type' => 'required|string',
+            'dates' => 'required|string',
+            'reason' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $datesJson = json_encode($request->dates);
+
+        $leave = new Leave();
+        $leave->user_id = Auth::id();
+        $leave->type = $request->type;
+        $leave->dates = $request->dates;
+        $leave->reason = $request->reason;
+        $leave->status = 0;
+
+        $leave->save();
+
+        return response()->json(['message' => 'Leave request sent successfully', 'leave' => $leave], 201);
+    }
+
+    // Method for user to see their own leave applications
+    public function getUserLeaves()
+    {
+        $userId = Auth::id();
+        $leaves = Leave::where('user_id', $userId)->orderBy('created_at', 'desc')->get();
+
+        return response()->json(['leaves' => $leaves], 200);
+    }
+
+    // Method for admin to see all leave applications
+    public function getAllLeaves()
+    {
+        $leaves = Leave::orderBy('created_at', 'desc')->get();
+
+        return response()->json(['leaves' => $leaves], 200);
+    }
+
+    public function updateLeaveStatus(Request $request, $leaveId)
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|string',
+            'comments' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $leave = Leave::findOrFail($leaveId);
+        $leave->status = $request->status;
+        $leave->comments = $request->comments;
+
+        $leave->save();
+
+        return response()->json(['message' => 'Leave request updated successfully', 'leave' => $leave], 200);
+    }
+
+    public function makeAttendance(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'date' => 'required|date',
+            'status' => 'nullable|string',
+            'in_time' => 'nullable|date_format:H:i',
+            'out_time' => 'nullable|date_format:H:i',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Check if attendance record exists for the given date
+        $attendance = Attendance::where('user_id', Auth::id())
+            ->where('date', $request->date)
+            ->first();
+
+        // If attendance record exists, update out_time
+        if ($attendance) {
+            if ($request->out_time) {
+                $attendance->out_time = $request->out_time;
+                $attendance->total_hours = $this->calculateTotalHours($attendance->in_time, $request->out_time);
+                $attendance->save();
+
+                return response()->json([
+                    'message' => 'Out time updated successfully',
+                    'attendance' => $attendance,
+                ], 200);
+            }
+
+            return response()->json([
+                'message' => 'Attendance record already exists for this date. Please provide out_time to update.',
+                'attendance' => $attendance,
+            ], 200);
+        }
+
+        // If no record exists, create a new attendance record
+        $attendance = Attendance::create([
+            'user_id' => Auth::id(),
+            'date' => $request->date,
+            'status' => $request->status,
+            'in_time' => $request->in_time,
+            'out_time' => null,
+            'total_hours' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'In time recorded successfully',
+            'attendance' => $attendance,
+        ], 201);
+    }
+
+    private function calculateTotalHours($in_time, $out_time)
+    {
+        $inTime = Carbon::createFromFormat(strlen($in_time) == 8 ? 'H:i:s' : 'H:i', $in_time);
+        $outTime = Carbon::createFromFormat('H:i', $out_time);
+
+        $totalMinutes = $outTime->diffInMinutes($inTime);
+        $hours = floor($totalMinutes / 60);
+        $minutes = $totalMinutes % 60;
+
+        return sprintf('%02d:%02d', $hours, $minutes);
+    }
+
 }
