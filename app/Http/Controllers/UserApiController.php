@@ -636,18 +636,87 @@ class UserApiController extends Controller
 
         $user = Auth::user();
 
-        $rating = Performance::create([
-            'user_id' => $request->userId,
-            'month' => $request->month,
-            'rating' => $request->rating,
-            'comments' => $request->comments,
-            'givenBy' => Auth::id(),
+        $existingRating = Performance::where('user_id', $request->userId)
+            ->where('month', $request->month)
+            ->where('givenBy', Auth::id())
+            ->first();
+
+        if ($existingRating) {
+            $existingRating->update([
+                'rating' => $request->rating,
+                'comments' => $request->comments,
+            ]);
+
+            return response()->json([
+                'message' => 'Rating submitted successfully',
+                'data' => $existingRating,
+            ], 200);
+        }
+        else {
+            $rating = Performance::create([
+                'user_id' => $request->userId,
+                'month' => $request->month,
+                'rating' => $request->rating,
+                'comments' => $request->comments,
+                'givenBy' => Auth::id(),
+            ]);
+
+            return response()->json([
+                'message' => 'Rating submitted successfully',
+                'data' => $rating,
+            ], 201);
+        }
+    }
+
+    public function getMyPerformance(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'month' => 'required|date_format:Y-m',
         ]);
 
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $user = Auth::user();
+
+        $performanceRecords = Performance::where('user_id', $user->id)
+                                        ->where('month', $request->month)
+                                        ->get();
+
+        if ($performanceRecords->isEmpty()) {
+            return response()->json(['message' => 'No performance data found for the given month'], 404);
+        }
+
         return response()->json([
-            'message' => 'Rating submitted successfully',
-            'data' => $rating,
-        ], 201);
+            'message' => 'Performance data retrieved successfully',
+            'data' => $performanceRecords,
+        ], 200);
+    }
+
+    public function getEmployeesPerformance(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'userId' => 'required|integer|exists:users,id',
+            'month' => 'required|date_format:Y-m',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $performances = Performance::where('user_id', $request->userId)
+                                    ->where('month', $request->month)
+                                    ->get();
+
+        if ($performances->isEmpty()) {
+            return response()->json(['message' => 'No performance data found for the given user and month'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Performance data retrieved successfully',
+            'data' => $performances,
+        ], 200);
     }
 
 }
