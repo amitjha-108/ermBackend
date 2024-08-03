@@ -95,13 +95,18 @@ class UserApiController extends Controller
     public function getEmployees(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'role' => 'required|string',
+            'role' => 'nullable|string',
         ]);
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
         $role = $request->input('role');
-        $employees = User::where('role', $role)->get();
+
+        if ($role) {
+            $employees = User::where('role', $role)->get();
+        } else {
+            $employees = User::all();
+        }
 
         return response()->json(['message' => 'Data Retrieved Successfully!', 'employees' => $employees], 200);
     }
