@@ -724,4 +724,49 @@ class UserApiController extends Controller
         ], 200);
     }
 
+    public function getAnalytics()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        // Get the start and end date of the current month
+        $currentDate = Carbon::now();
+        $startOfMonth = $currentDate->copy()->startOfMonth();
+        $endOfMonth = $currentDate->copy()->endOfMonth();
+        $totalDaysInCurrentMonth = $currentDate->daysInMonth;
+
+        // Get the start and end date of the previous month
+        $previousMonthDate = $currentDate->copy()->subMonth();
+        $previousMonth = $previousMonthDate->format('Y-m');
+        $totalDaysInPreviousMonth = $previousMonthDate->daysInMonth;
+
+        // Fetch attendance count for the current month for the authenticated user
+        $attendanceCount = Attendance::where('user_id', $user->id)
+            ->whereBetween('date', [$startOfMonth, $endOfMonth])
+            ->count();
+
+        // Fetch performance data for the previous month for the authenticated user
+        $previousMonthPerformance = Performance::where('user_id', $user->id)
+            ->where('month', $previousMonth)
+            ->get();
+
+        // Check if there is any performance data for the previous month
+        $averagePerformance = null;
+        if ($previousMonthPerformance->isNotEmpty()) {
+            $averagePerformance = round($previousMonthPerformance->avg('rating'), 1);
+        }
+
+        return response()->json([
+            'attendance' => "$attendanceCount/$totalDaysInCurrentMonth",
+            // 'previous_month_performance' => $previousMonthPerformance,
+            'performance' => $averagePerformance,
+            'tasks' => 0,
+            'projects' => 0
+        ]);
+    }
+
+
 }
