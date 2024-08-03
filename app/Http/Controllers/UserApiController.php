@@ -751,7 +751,7 @@ class UserApiController extends Controller
         // Fetch today's attendance record for the authenticated user
         $todayAttendance = Attendance::where('user_id', $user->id)
             ->whereDate('date', $currentDate->toDateString())
-            ->exists();
+            ->first();
 
         // Fetch performance data for the previous month for the authenticated user
         $previousMonthPerformance = Performance::where('user_id', $user->id)
@@ -764,10 +764,16 @@ class UserApiController extends Controller
             $averagePerformance = round($previousMonthPerformance->avg('rating'), 1);
         }
 
+        // Prepare in_time and out_time data
+        $inTime = $todayAttendance ? $todayAttendance->in_time : null;
+        $outTime = $todayAttendance ? $todayAttendance->out_time : null;
+
         return response()->json([
             'message' => 'Analytics retrieved successfully',
             'attendance' => "$attendanceCount/$totalDaysInCurrentMonth",
-            'attendanceInReport' => $todayAttendance,
+            'attendanceInReport' => $todayAttendance ? true : false,
+            'in_time' => $inTime,
+            'out_time' => $outTime,
             'performance' => $averagePerformance,
             'tasks' => 0,
             'projects' => 0
