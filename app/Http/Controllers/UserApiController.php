@@ -748,6 +748,11 @@ class UserApiController extends Controller
             ->whereBetween('date', [$startOfMonth, $endOfMonth])
             ->count();
 
+        // Fetch today's attendance record for the authenticated user
+        $todayAttendance = Attendance::where('user_id', $user->id)
+            ->whereDate('date', $currentDate->toDateString())
+            ->exists();
+
         // Fetch performance data for the previous month for the authenticated user
         $previousMonthPerformance = Performance::where('user_id', $user->id)
             ->where('month', $previousMonth)
@@ -760,8 +765,9 @@ class UserApiController extends Controller
         }
 
         return response()->json([
+            'message' => 'Analytics retrieved successfully',
             'attendance' => "$attendanceCount/$totalDaysInCurrentMonth",
-            // 'previous_month_performance' => $previousMonthPerformance,
+            'attendanceInReport' => $todayAttendance,
             'performance' => $averagePerformance,
             'tasks' => 0,
             'projects' => 0
