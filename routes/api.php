@@ -30,7 +30,7 @@ Route::middleware(['auth:api', 'role.check:1,2'])->group(function () {
 
 //routes accessed by admin , supervisor and super-admin only
 Route::middleware(['auth:api', 'role.check:1,2,3'])->group(function () {
-    // Route::post('add-project', [ProjectApiController::class, 'addProject']);
+    Route::post('/employees-monthly-attendance', [UserApiController::class, 'getEmployeesMonthlyAttendance']);
 });
 
 //routes accessed by user, admin , supervisor and super-admin all
@@ -42,5 +42,6 @@ Route::middleware(['auth:api', 'role.check:1,2,3,4'])->group(function () {
     Route::post('/apply-leave', [UserApiController::class, 'applyLeave']);
     Route::get('/my-leave-applications', [UserApiController::class, 'getUserLeaves']);
     Route::post('/make-attendance', [UserApiController::class, 'makeAttendance']);
+    Route::post('/my-monthly-attendance', [UserApiController::class, 'getMyMonthlyAttendance']);
 
 });

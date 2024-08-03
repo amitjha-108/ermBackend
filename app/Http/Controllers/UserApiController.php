@@ -515,4 +515,79 @@ class UserApiController extends Controller
         return sprintf('%02d:%02d', $hours, $minutes);
     }
 
+    //my month attendance
+    public function getMyMonthlyAttendance(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'month' => 'required|date_format:Y-m',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $userId = Auth::id();
+        $month = $request->month;
+
+        // Retrieve attendance records for the given month
+        $attendances = Attendance::where('user_id', $userId)
+            ->whereYear('date', '=', Carbon::parse($month)->year)
+            ->whereMonth('date', '=', Carbon::parse($month)->month)
+            ->get();
+
+        // Format the response
+            $attendanceResponse = $attendances->map(function ($attendance) {
+                return [
+                    'date' => $attendance->date,
+                    'status' => $attendance->status,
+                    'total_hours' => $attendance->total_hours,
+                ];
+            });
+
+        return response()->json([
+            'message' => 'Monthly attendance report',
+            'month' => $month,
+            'attendances' => $attendanceResponse,
+        ], 200);
+    }
+
+    //employees attendance report monthly
+    public function getEmployeesMonthlyAttendance(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'month' => 'required|date_format:Y-m',
+            'userId' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $userId = $request->userId;
+        $month = $request->month;
+
+        // Retrieve attendance records for the given month and user ID
+        $attendances = Attendance::where('user_id', $userId)
+            ->whereYear('date', '=', Carbon::parse($month)->year)
+            ->whereMonth('date', '=', Carbon::parse($month)->month)
+            ->get();
+
+        // Format the response
+        $attendanceResponse = $attendances->map(function ($attendance) {
+            return [
+                'date' => $attendance->date,
+                'status' => $attendance->status,
+                'total_hours' => $attendance->total_hours,
+            ];
+        });
+
+        return response()->json([
+            'message' => 'Monthly attendance report',
+            'month' => $month,
+            'userId' => $userId,
+            'attendances' => $attendanceResponse,
+        ], 200);
+    }
+
+
 }
