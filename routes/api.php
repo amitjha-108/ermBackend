@@ -31,6 +31,7 @@ Route::middleware(['auth:api', 'role.check:1,2'])->group(function () {
 //routes accessed by admin , supervisor and super-admin only
 Route::middleware(['auth:api', 'role.check:1,2,3'])->group(function () {
     Route::post('/employees-monthly-attendance', [UserApiController::class, 'getEmployeesMonthlyAttendance']);
+    Route::post('/rate-employee', [UserApiController::class, 'rateEmployee']);
 });
 
 //routes accessed by user, admin , supervisor and super-admin all

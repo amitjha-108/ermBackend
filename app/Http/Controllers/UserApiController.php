@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\User;
 use App\Models\Leave;
 use App\Models\Attendance;
+use App\Models\Performance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -516,40 +517,90 @@ class UserApiController extends Controller
     }
 
     //my month attendance
+    // public function getMyMonthlyAttendance(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'month' => 'required|date_format:Y-m',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json(['error' => $validator->errors()], 422);
+    //     }
+
+    //     $userId = Auth::id();
+    //     $month = $request->month;
+
+    //     // Retrieve attendance records for the given month
+    //     $attendances = Attendance::where('user_id', $userId)
+    //         ->whereYear('date', '=', Carbon::parse($month)->year)
+    //         ->whereMonth('date', '=', Carbon::parse($month)->month)
+    //         ->get();
+
+    //     // Format the response
+    //         $attendanceResponse = $attendances->map(function ($attendance) {
+    //             return [
+    //                 'date' => $attendance->date,
+    //                 'status' => $attendance->status,
+    //                 'total_hours' => $attendance->total_hours,
+    //             ];
+    //         });
+
+    //     return response()->json([
+    //         'message' => 'Monthly attendance report',
+    //         'month' => $month,
+    //         'attendances' => $attendanceResponse,
+    //     ], 200);
+    // }
     public function getMyMonthlyAttendance(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'month' => 'required|date_format:Y-m',
-        ]);
+{
+    $validator = Validator::make($request->all(), [
+        'month' => 'required|date_format:Y-m',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
-
-        $userId = Auth::id();
-        $month = $request->month;
-
-        // Retrieve attendance records for the given month
-        $attendances = Attendance::where('user_id', $userId)
-            ->whereYear('date', '=', Carbon::parse($month)->year)
-            ->whereMonth('date', '=', Carbon::parse($month)->month)
-            ->get();
-
-        // Format the response
-            $attendanceResponse = $attendances->map(function ($attendance) {
-                return [
-                    'date' => $attendance->date,
-                    'status' => $attendance->status,
-                    'total_hours' => $attendance->total_hours,
-                ];
-            });
-
-        return response()->json([
-            'message' => 'Monthly attendance report',
-            'month' => $month,
-            'attendances' => $attendanceResponse,
-        ], 200);
+    if ($validator->fails()) {
+        return response()->json(['error' => $validator->errors()], 422);
     }
+
+    $userId = Auth::id();
+    $month = $request->month;
+    $startOfMonth = Carbon::parse($month)->startOfMonth();
+    $endOfMonth = Carbon::parse($month)->endOfMonth();
+
+    // Retrieve attendance records for the given month
+    $attendances = Attendance::where('user_id', $userId)
+        ->whereYear('date', '=', $startOfMonth->year)
+        ->whereMonth('date', '=', $startOfMonth->month)
+        ->get()
+        ->keyBy('date');
+
+    // Initialize an empty collection for the attendance response
+    $attendanceResponse = collect();
+
+    // Iterate through each day of the month
+    for ($date = $startOfMonth; $date->lte($endOfMonth); $date->addDay()) {
+        if ($attendances->has($date->toDateString())) {
+            $attendance = $attendances->get($date->toDateString());
+            $attendanceResponse->push([
+                'date' => $attendance->date,
+                'status' => $attendance->status,
+                'total_hours' => $attendance->total_hours,
+            ]);
+        } else {
+            $attendanceResponse->push([
+                'date' => $date->toDateString(),
+                'status' => 'Absent',
+                'total_hours' => '00:00',
+            ]);
+        }
+    }
+
+    return response()->json([
+        'message' => 'Monthly attendance report',
+        'month' => $month,
+        'attendances' => $attendanceResponse,
+    ], 200);
+}
+
 
     //employees attendance report monthly
     public function getEmployeesMonthlyAttendance(Request $request)
@@ -589,5 +640,33 @@ class UserApiController extends Controller
         ], 200);
     }
 
+    public function rateEmployee(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'userId' => 'required|integer',
+            'month' => 'required|date_format:Y-m',
+            'rating' => 'required|numeric|min:1|max:5',
+            'comments' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $user = Auth::user();
+
+        $rating = Performance::create([
+            'user_id' => $request->userId,
+            'month' => $request->month,
+            'rating' => $request->rating,
+            'comments' => $request->comments,
+            'givenBy' => Auth::id(),
+        ]);
+
+        return response()->json([
+            'message' => 'Rating submitted successfully',
+            'data' => $rating,
+        ], 201);
+    }
 
 }
