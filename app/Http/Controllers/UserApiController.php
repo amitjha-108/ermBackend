@@ -431,7 +431,7 @@ class UserApiController extends Controller
     // Method for admin to see all leave applications
     public function getAllLeaves()
     {
-        $leaves = Leave::orderBy('created_at', 'desc')->get();
+        $leaves = Leave::with('user:name,photo,designation,department')->orderBy('created_at', 'desc')->get();
 
         return response()->json(['leaves' => $leaves], 200);
     }
@@ -523,54 +523,54 @@ class UserApiController extends Controller
 
     //my month attendance
     public function getMyMonthlyAttendance(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'month' => 'required|date_format:Y-m',
-    ]);
+    {
+        $validator = Validator::make($request->all(), [
+            'month' => 'required|date_format:Y-m',
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json(['error' => $validator->errors()], 422);
-    }
-
-    $userId = Auth::id();
-    $month = $request->month;
-    $startOfMonth = Carbon::parse($month)->startOfMonth();
-    $endOfMonth = Carbon::parse($month)->endOfMonth();
-
-    // Retrieve attendance records for the given month
-    $attendances = Attendance::where('user_id', $userId)
-        ->whereYear('date', '=', $startOfMonth->year)
-        ->whereMonth('date', '=', $startOfMonth->month)
-        ->get()
-        ->keyBy('date');
-
-    // Initialize an empty collection for the attendance response
-    $attendanceResponse = collect();
-
-    // Iterate through each day of the month
-    for ($date = $startOfMonth; $date->lte($endOfMonth); $date->addDay()) {
-        if ($attendances->has($date->toDateString())) {
-            $attendance = $attendances->get($date->toDateString());
-            $attendanceResponse->push([
-                'date' => $attendance->date,
-                'status' => $attendance->status,
-                'total_hours' => $attendance->total_hours,
-            ]);
-        } else {
-            $attendanceResponse->push([
-                'date' => $date->toDateString(),
-                'status' => 'Absent',
-                'total_hours' => '00:00',
-            ]);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
         }
-    }
 
-    return response()->json([
-        'message' => 'Monthly attendance report',
-        'month' => $month,
-        'attendances' => $attendanceResponse,
-    ], 200);
-}
+        $userId = Auth::id();
+        $month = $request->month;
+        $startOfMonth = Carbon::parse($month)->startOfMonth();
+        $endOfMonth = Carbon::parse($month)->endOfMonth();
+
+        // Retrieve attendance records for the given month
+        $attendances = Attendance::where('user_id', $userId)
+            ->whereYear('date', '=', $startOfMonth->year)
+            ->whereMonth('date', '=', $startOfMonth->month)
+            ->get()
+            ->keyBy('date');
+
+        // Initialize an empty collection for the attendance response
+        $attendanceResponse = collect();
+
+        // Iterate through each day of the month
+        for ($date = $startOfMonth; $date->lte($endOfMonth); $date->addDay()) {
+            if ($attendances->has($date->toDateString())) {
+                $attendance = $attendances->get($date->toDateString());
+                $attendanceResponse->push([
+                    'date' => $attendance->date,
+                    'status' => $attendance->status,
+                    'total_hours' => $attendance->total_hours,
+                ]);
+            } else {
+                $attendanceResponse->push([
+                    'date' => $date->toDateString(),
+                    'status' => 'Absent',
+                    'total_hours' => '00:00',
+                ]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Monthly attendance report',
+            'month' => $month,
+            'attendances' => $attendanceResponse,
+        ], 200);
+    }
 
 
     //employees attendance report monthly
