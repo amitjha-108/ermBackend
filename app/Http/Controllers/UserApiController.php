@@ -431,7 +431,7 @@ class UserApiController extends Controller
     // Method for admin to see all leave applications
     public function getAllLeaves()
     {
-        $leaves = Leave::with('user:name,photo,designation,department')->orderBy('created_at', 'desc')->get();
+        $leaves = Leave::with('user:id,name,photo,designation,department')->orderBy('created_at', 'desc')->get();
 
         return response()->json(['leaves' => $leaves], 200);
     }
