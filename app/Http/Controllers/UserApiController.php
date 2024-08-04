@@ -500,7 +500,7 @@ class UserApiController extends Controller
             'status' => $request->status,
             'in_time' => $request->in_time,
             'out_time' => null,
-            'total_hours' => null,
+            'total_hours' => $request->out_time ? $this->calculateTotalHours($request->in_time, $request->out_time) : '00:00',
         ]);
 
         return response()->json([
