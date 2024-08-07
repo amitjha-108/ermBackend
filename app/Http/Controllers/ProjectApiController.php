@@ -242,7 +242,7 @@ class ProjectApiController extends Controller
         }
 
         // Check if the authenticated user is the employee assigned to the task
-        if ($task->empId !== auth()->user()->id) {
+        if ($task->empId != auth()->user()->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
