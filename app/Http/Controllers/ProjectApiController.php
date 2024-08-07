@@ -147,26 +147,111 @@ class ProjectApiController extends Controller
         return response()->json(['message' => 'Task created successfully', 'task' => $task], 201);
     }
 
-    public function listAllTasks()
+    public function listAllTasks(Request $request)
     {
-        $tasks = AssignedTask::with([
-            'employee:id,name,contact',
-            'assignedByUser:id,name',
-            'project:id,name'
-        ])->get();
+        $userId = $request->user()->id;
+        $userRole = $request->user()->role;
+
+        if ($userRole == 1 || $userRole == 2) {
+            $tasks = AssignedTask::with([
+                'employee:id,name,contact',
+                'assignedByUser:id,name',
+                'project:id,name'
+            ])->get();
+        }
+        elseif ($userRole == 3) {
+            $tasks = AssignedTask::with([
+                'employee:id,name,contact',
+                'assignedByUser:id,name',
+                'project:id,name'
+            ])
+            ->where('assignedBy', $userId)
+            ->get();
+        }
+        elseif ($userRole == 4) {
+            $tasks = AssignedTask::with([
+                'employee:id,name,contact',
+                'assignedByUser:id,name',
+                'project:id,name'
+            ])
+            ->where('empId', $userId)
+            ->get();
+        }
+        else {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         return response()->json(['tasks' => $tasks], 200);
     }
 
-    public function listOwnTasks(Request $request)
+    public function editTask(Request $request, $id)
     {
-        $tasks = AssignedTask::with([
-            'employee:id,name,contact',
-            'assignedByUser:id,name',
-            'project:id,name'
-        ])
-        ->where('empId', $request->user()->id)
-        ->get();
+        $validator = Validator::make($request->all(), [
+            'project_id' => 'required|exists:projects,id',
+            'empId' => 'required|exists:users,id',
+            'taskDescription' => 'required|string',
+            'priority' => 'required|string',
+            'deadline' => 'required|date',
+            'startTime' => 'nullable|date_format:H:i',
+            'endTime' => 'nullable|date_format:H:i',
+            'status' => 'nullable|string|in:0,1,2,3,4,5',
+        ]);
 
-        return response()->json(['tasks' => $tasks], 200);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $task = AssignedTask::find($id);
+        if (!$task) {
+            return response()->json(['message' => 'Task not found'], 404);
+        }
+
+        // Check if the user has permission to edit the task (optional)
+        if ($task->assignedBy !== auth()->user()->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Update task fields
+        $task->update([
+            'project_id' => $request->project_id ?? $task->project_id,
+            'empId' => $request->empId ?? $task->empId,
+            'taskDescription' => $request->taskDescription ?? $task->taskDescription,
+            'priority' => $request->priority ?? $task->priority,
+            'deadline' => $request->deadline ?? $task->deadline,
+            'startTime' => $request->startTime ?? $task->startTime,
+            'endTime' => $request->endTime ?? $task->endTime,
+            'status' => $request->status ?? $task->status,
+        ]);
+
+        return response()->json(['message' => 'Task updated successfully', 'task' => $task], 200);
     }
+
+    public function editTaskStatus(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|string|in:0,1,2,3,4,5',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $task = AssignedTask::find($id);
+        if (!$task) {
+            return response()->json(['message' => 'Task not found'], 404);
+        }
+
+        // Check if the authenticated user is the employee assigned to the task
+        if ($task->empId !== auth()->user()->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $task->update([
+            'status' => $request->status,
+        ]);
+
+        return response()->json(['message' => 'Task status updated successfully', 'task' => $task], 200);
+    }
+
+
 }

@@ -37,7 +37,6 @@ Route::middleware(['auth:api', 'role.check:1,2,3'])->group(function () {
     Route::post('/employees-monthly-attendance', [UserApiController::class, 'getEmployeesMonthlyAttendance']);
     Route::post('/employees-monthly-performance', [UserApiController::class, 'getEmployeesPerformance']);
     Route::post('/rate-employee', [UserApiController::class, 'rateEmployee']);
-    Route::get('/list-all-task', [ProjectApiController::class, 'listAllTasks']);
 });
 
 //routes accessed by user, admin , supervisor and super-admin all
@@ -54,5 +53,7 @@ Route::middleware(['auth:api', 'role.check:1,2,3,4'])->group(function () {
     Route::get('/my-analytics', [UserApiController::class, 'getAnalytics']);
     Route::get('/my-analytics', [UserApiController::class, 'getAnalytics']);
     Route::post('/create-task', [ProjectApiController::class, 'createTask']);
-    Route::get('/list-own-task', [ProjectApiController::class, 'listOwnTasks']);
+    Route::post('/edit-task/{id}', [ProjectApiController::class, 'editTask']);
+    Route::post('/edit-task-status/{id}', [ProjectApiController::class, 'editTaskStatus']);
+    Route::get('/list-all-task', [ProjectApiController::class, 'listAllTasks']);
 });
