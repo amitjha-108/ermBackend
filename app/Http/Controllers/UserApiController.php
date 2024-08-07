@@ -760,7 +760,7 @@ class UserApiController extends Controller
             ->get();
 
         // Check if there is any performance data for the previous month
-        $averagePerformance = null;
+        $averagePerformance = 0;
         if ($previousMonthPerformance->isNotEmpty()) {
             $averagePerformance = round($previousMonthPerformance->avg('rating'), 1);
         }
