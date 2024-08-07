@@ -25,6 +25,10 @@ Route::middleware(['auth:api', 'role.check:1,2'])->group(function () {
     Route::get('/list-leave-applications', [UserApiController::class, 'getAllLeaves']);
     Route::post('/update-leave-status/{leaveId}', [UserApiController::class, 'updateLeaveStatus']);
 
+    Route::post('/send-message/{id}', [UserApiController::class, 'sendMessageToUser']);
+    Route::post('/send-message-to-all', [UserApiController::class, 'sendMessageToAllUsers']);
+
+
 
 });
 

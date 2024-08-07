@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use App\Models\Message;
 
 class UserApiController extends Controller
 {
@@ -779,6 +780,52 @@ class UserApiController extends Controller
             'projects' => 0
         ]);
     }
+
+    public function sendMessageToUser(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'message' => 'required|string',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $message = $request->input('message');
+        Message::create([
+            'user_id' => $user->id,
+            'message' => $message,
+        ]);
+
+        return response()->json(['message' => 'Message sent successfully!'], 200);
+    }
+
+    public function sendMessageToAllUsers(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'message' => 'required|string',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $message = $request->input('message');
+        $users = User::all();
+
+        foreach ($users as $user) {
+            Message::create([
+                'user_id' => $user->id,
+                'message' => $message,
+            ]);
+        }
+
+        return response()->json(['message' => 'Message sent to all users successfully!'], 200);
+    }
+
 
 
 }
