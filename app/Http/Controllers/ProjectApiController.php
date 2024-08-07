@@ -146,4 +146,27 @@ class ProjectApiController extends Controller
 
         return response()->json(['message' => 'Task created successfully', 'task' => $task], 201);
     }
+
+    public function listAllTasks()
+    {
+        $tasks = AssignedTask::with([
+            'employee:id,name,contact',
+            'assignedByUser:id,name',
+            'project:id,name'
+        ])->get();
+        return response()->json(['tasks' => $tasks], 200);
+    }
+
+    public function listOwnTasks(Request $request)
+    {
+        $tasks = AssignedTask::with([
+            'employee:id,name,contact',
+            'assignedByUser:id,name',
+            'project:id,name'
+        ])
+        ->where('empId', $request->user()->id)
+        ->get();
+
+        return response()->json(['tasks' => $tasks], 200);
+    }
 }
