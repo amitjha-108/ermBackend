@@ -207,7 +207,7 @@ class ProjectApiController extends Controller
         }
 
         // Check if the user has permission to edit the task (optional)
-        if ($task->assignedBy !== auth()->user()->id) {
+        if ($task->assignedBy != auth()->user()->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
