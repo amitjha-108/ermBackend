@@ -51,5 +51,5 @@ Route::middleware(['auth:api', 'role.check:1,2,3,4'])->group(function () {
     Route::post('/my-monthly-attendance', [UserApiController::class, 'getMyMonthlyAttendance']);
     Route::post('/my-monthly-performance', [UserApiController::class, 'getMyPerformance']);
     Route::get('/my-analytics', [UserApiController::class, 'getAnalytics']);
-
+    Route::post('/create-task', [ProjectApiController::class, 'createTask']);
 });

@@ -6,6 +6,7 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use App\Models\AssignedTask;
 
 class ProjectApiController extends Controller
 {
@@ -113,5 +114,36 @@ class ProjectApiController extends Controller
         $project->delete();
 
         return response()->json(['message' => 'Project deleted successfully!'], 200);
+    }
+
+    public function createTask(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'project_id' => 'required|exists:projects,id',
+            'empId' => 'required|exists:users,id',
+            'taskDescription' => 'required|string',
+            'priority' => 'required|string',
+            'deadline' => 'required|date',
+            'startTime' => 'nullable|date_format:H:i',
+            'endTime' => 'nullable|date_format:H:i',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $task = AssignedTask::create([
+            'project_id' => $request->project_id,
+            'empId' => $request->empId,
+            'taskDescription' => $request->taskDescription,
+            'priority' => $request->priority,
+            'deadline' => $request->deadline,
+            'assignedBy' => auth()->user()->id,
+            'status' => '0',
+            'startTime' => $request->startTime,
+            'endTime' => $request->endTime,
+        ]);
+
+        return response()->json(['message' => 'Task created successfully', 'task' => $task], 201);
     }
 }
