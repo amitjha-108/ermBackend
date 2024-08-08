@@ -286,14 +286,9 @@ class ProjectApiController extends Controller
                 ->where('project_id', $projectId)
                 ->get()
                 ->unique('empId')
-                ->map(function ($task) {
-                    return [
-                        'employee' => $task->employee,
-                        // 'project_id' => $task->project_id,
-                    ];
-                });
-        }
-        else {
+                ->pluck('employee')
+                ->values();
+        } else {
             // Get projects that the logged-in user is assigned to
             $projects = AssignedTask::where('empId', $userId)
                 ->pluck('project_id')
@@ -311,12 +306,8 @@ class ProjectApiController extends Controller
                 ->whereIn('project_id', $projects)
                 ->get()
                 ->unique('empId')
-                ->map(function ($task) {
-                    return [
-                        'employee' => $task->employee,
-                        // 'project_id' => $task->project_id,
-                    ];
-                });
+                ->pluck('employee')
+                ->values();
         }
 
         return response()->json(['teamMembers' => $teamMembers], 200);
@@ -325,8 +316,10 @@ class ProjectApiController extends Controller
     public function projectWiseTeam(Request $request)
     {
         $projectId = $request->input('project_id');
+        $teamMembers = collect();
 
         if ($projectId) {
+            // Get team members for the specific project
             $teamMembers = AssignedTask::with([
                     'employee:id,name,contact,photo,designation,department',
                     'project:id,name'
@@ -334,28 +327,22 @@ class ProjectApiController extends Controller
                 ->where('project_id', $projectId)
                 ->get()
                 ->unique('empId')
-                ->map(function ($task) {
-                    return [
-                        'employee' => $task->employee,
-                    ];
-                });
+                ->pluck('employee')
+                ->values();
 
             if ($teamMembers->isEmpty()) {
                 return response()->json(['message' => 'No team members found for this project'], 200);
             }
-        }
-        else {
+        } else {
+            // Get all team members across all projects
             $teamMembers = AssignedTask::with([
                     'employee:id,name,contact,photo,designation,department',
                     'project:id,name'
                 ])
                 ->get()
                 ->unique('empId')
-                ->map(function ($task) {
-                    return [
-                        'employee' => $task->employee,
-                    ];
-                });
+                ->pluck('employee')
+                ->values();
 
             if ($teamMembers->isEmpty()) {
                 return response()->json(['message' => 'No team members found'], 200);
@@ -364,5 +351,6 @@ class ProjectApiController extends Controller
 
         return response()->json(['teamMembers' => $teamMembers], 200);
     }
+
 
 }
