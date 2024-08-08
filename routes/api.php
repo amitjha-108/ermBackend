@@ -57,4 +57,5 @@ Route::middleware(['auth:api', 'role.check:1,2,3,4'])->group(function () {
     Route::post('/edit-task/{id}', [ProjectApiController::class, 'editTask']);
     Route::post('/edit-task-status/{id}', [ProjectApiController::class, 'editTaskStatus']);
     Route::get('/list-all-task', [ProjectApiController::class, 'listAllTasks']);
+    Route::post('/list-team-members', [ProjectApiController::class, 'listTeamMembers']);
 });

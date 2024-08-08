@@ -264,5 +264,62 @@ class ProjectApiController extends Controller
         return response()->json(['message' => 'Task deleted successfully'], 200);
     }
 
+    public function listTeamMembers(Request $request)
+    {
+        $userId = $request->user()->id;
+        $projectId = $request->input('project_id');
+
+        if ($projectId) {
+            $isAssigned = AssignedTask::where('empId', $userId)
+                ->where('project_id', $projectId)
+                ->exists();
+
+            if (!$isAssigned) {
+                return response()->json(['message' => 'You are not assigned to this project'], 200);
+            }
+
+            // Get team members for the specific project
+            $teamMembers = AssignedTask::with([
+                    'employee:id,name,contact,photo,designation,department',
+                    'project:id,name'
+                ])
+                ->where('project_id', $projectId)
+                ->get()
+                ->unique('empId')
+                ->map(function ($task) {
+                    return [
+                        'employee' => $task->employee,
+                        // 'project_id' => $task->project_id,
+                    ];
+                });
+        }
+        else {
+            // Get projects that the logged-in user is assigned to
+            $projects = AssignedTask::where('empId', $userId)
+                ->pluck('project_id')
+                ->unique();
+
+            if ($projects->isEmpty()) {
+                return response()->json(['message' => 'No projects found assigned for you'], 200);
+            }
+
+            // Get all team members assigned to these projects
+            $teamMembers = AssignedTask::with([
+                    'employee:id,name,contact,photo,designation,department',
+                    'project:id,name'
+                ])
+                ->whereIn('project_id', $projects)
+                ->get()
+                ->unique('empId')
+                ->map(function ($task) {
+                    return [
+                        'employee' => $task->employee,
+                        // 'project_id' => $task->project_id,
+                    ];
+                });
+        }
+
+        return response()->json(['teamMembers' => $teamMembers], 200);
+    }
 
 }
