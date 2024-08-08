@@ -322,4 +322,47 @@ class ProjectApiController extends Controller
         return response()->json(['teamMembers' => $teamMembers], 200);
     }
 
+    public function projectWiseTeam(Request $request)
+    {
+        $projectId = $request->input('project_id');
+
+        if ($projectId) {
+            $teamMembers = AssignedTask::with([
+                    'employee:id,name,contact,photo,designation,department',
+                    'project:id,name'
+                ])
+                ->where('project_id', $projectId)
+                ->get()
+                ->unique('empId')
+                ->map(function ($task) {
+                    return [
+                        'employee' => $task->employee,
+                    ];
+                });
+
+            if ($teamMembers->isEmpty()) {
+                return response()->json(['message' => 'No team members found for this project'], 200);
+            }
+        }
+        else {
+            $teamMembers = AssignedTask::with([
+                    'employee:id,name,contact,photo,designation,department',
+                    'project:id,name'
+                ])
+                ->get()
+                ->unique('empId')
+                ->map(function ($task) {
+                    return [
+                        'employee' => $task->employee,
+                    ];
+                });
+
+            if ($teamMembers->isEmpty()) {
+                return response()->json(['message' => 'No team members found'], 200);
+            }
+        }
+
+        return response()->json(['teamMembers' => $teamMembers], 200);
+    }
+
 }
