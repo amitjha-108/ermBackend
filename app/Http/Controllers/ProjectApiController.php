@@ -85,12 +85,22 @@ class ProjectApiController extends Controller
         return response()->json(['message' => 'Project updated successfully!', 'project' => $project], 200);
     }
 
-    public function getProjects()
+    public function getProjects(Request $request)
     {
-        $projects = Project::all();
+        $status = $request->input('status');
 
-        return response()->json(['message' => 'Projects Retrieved Successfully!', 'projects' => $projects], 200);
+        if ($status !== null) {
+            $projects = Project::where('status', $status)->get();
+        } else {
+            $projects = Project::all();
+        }
+
+        return response()->json([
+            'message' => 'Projects Retrieved Successfully!',
+            'projects' => $projects
+        ], 200);
     }
+
 
     public function getProjectById($id)
     {
