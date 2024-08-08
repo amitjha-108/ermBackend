@@ -253,5 +253,16 @@ class ProjectApiController extends Controller
         return response()->json(['message' => 'Task status updated successfully', 'task' => $task], 200);
     }
 
+    public function deleteTask($id)
+    {
+        $task = AssignedTask::find($id);
+        if (!$task) {
+            return response()->json(['error' => 'Task not found'], 404);
+        }
+        $task->delete();
+
+        return response()->json(['message' => 'Task deleted successfully'], 200);
+    }
+
 
 }

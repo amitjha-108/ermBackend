@@ -28,6 +28,7 @@ Route::middleware(['auth:api', 'role.check:1,2'])->group(function () {
     Route::post('/send-message/{id}', [UserApiController::class, 'sendMessageToUser']);
     Route::post('/send-message-to-all', [UserApiController::class, 'sendMessageToAllUsers']);
 
+    Route::delete('tasks/{id}', [ProjectApiController::class, 'deleteTask']);
 
 
 });
