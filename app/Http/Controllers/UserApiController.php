@@ -654,7 +654,7 @@ class UserApiController extends Controller
                 ->exists();
 
             if (!$isAssignedToSameProject) {
-                return response()->json(['message' => 'This employee is not in your team'], 403);
+                return response()->json(['message' => 'This employee is not in your team'], 200);
             }
         }
 
