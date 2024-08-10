@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\Models\Message;
+use App\Models\AssignedTask;
 
 class UserApiController extends Controller
 {
@@ -642,9 +643,24 @@ class UserApiController extends Controller
 
         $user = Auth::user();
 
+        // Check if the user's role is 3
+        if ($user->role == 3) {
+            $userProjectIds = AssignedTask::where('empId', $user->id)
+                ->pluck('project_id')
+                ->unique();
+
+            $isAssignedToSameProject = AssignedTask::where('empId', $request->userId)
+                ->whereIn('project_id', $userProjectIds)
+                ->exists();
+
+            if (!$isAssignedToSameProject) {
+                return response()->json(['message' => 'This employee is not in your team'], 403);
+            }
+        }
+
         $existingRating = Performance::where('user_id', $request->userId)
             ->where('month', $request->month)
-            ->where('givenBy', Auth::id())
+            ->where('givenBy', $user->id)
             ->first();
 
         if ($existingRating) {
@@ -654,17 +670,16 @@ class UserApiController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'Rating submitted successfully',
+                'message' => 'Rating updated successfully',
                 'data' => $existingRating,
             ], 200);
-        }
-        else {
+        } else {
             $rating = Performance::create([
                 'user_id' => $request->userId,
                 'month' => $request->month,
                 'rating' => $request->rating,
                 'comments' => $request->comments,
-                'givenBy' => Auth::id(),
+                'givenBy' => $user->id,
             ]);
 
             return response()->json([
@@ -673,6 +688,7 @@ class UserApiController extends Controller
             ], 201);
         }
     }
+
 
     public function getMyPerformance(Request $request)
     {
