@@ -170,12 +170,21 @@ class ProjectApiController extends Controller
             ])->get();
         }
         elseif ($userRole == 3) {
+            // Get all project IDs assigned to the logged-in user
+            $userProjectIds = AssignedTask::where('empId', $userId)
+                ->pluck('project_id')
+                ->unique();
+
+            // Role 3: List tasks assigned by the user or within the same project(s)
             $tasks = AssignedTask::with([
                 'employee:id,name,contact',
                 'assignedByUser:id,name',
                 'project:id,name'
             ])
-            ->where('assignedBy', $userId)
+            ->where(function($query) use ($userId, $userProjectIds) {
+                $query->where('assignedBy', $userId)
+                      ->orWhereIn('project_id', $userProjectIds);
+            })
             ->get();
         }
         elseif ($userRole == 4) {
