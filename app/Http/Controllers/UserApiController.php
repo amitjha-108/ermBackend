@@ -670,7 +670,7 @@ class UserApiController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'Rating updated successfully',
+                'message' => 'Rating submitted successfully',
                 'data' => $existingRating,
             ], 200);
         } else {

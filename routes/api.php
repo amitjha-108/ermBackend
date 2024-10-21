@@ -42,7 +42,7 @@ Route::middleware(['auth:api', 'role.check:1,2,3'])->group(function () {
     Route::post('/rate-employee', [UserApiController::class, 'rateEmployee']);
 });
 
-//routes accessed by user, admin , supervisor and super-admin all
+//routes accessed by user(4), admin(2) , supervisor(3) and super-admin(1) all
 Route::middleware(['auth:api', 'role.check:1,2,3,4'])->group(function () {
     Route::post('get-employees', [UserApiController::class, 'getEmployees']);
     Route::post('update-profile', [UserApiController::class, 'updateProfile']);
@@ -53,7 +53,6 @@ Route::middleware(['auth:api', 'role.check:1,2,3,4'])->group(function () {
     Route::post('/make-attendance', [UserApiController::class, 'makeAttendance']);
     Route::post('/my-monthly-attendance', [UserApiController::class, 'getMyMonthlyAttendance']);
     Route::post('/my-monthly-performance', [UserApiController::class, 'getMyPerformance']);
-    Route::get('/my-analytics', [UserApiController::class, 'getAnalytics']);
     Route::get('/my-analytics', [UserApiController::class, 'getAnalytics']);
     Route::post('/create-task', [ProjectApiController::class, 'createTask']);
     Route::post('/edit-task/{id}', [ProjectApiController::class, 'editTask']);
