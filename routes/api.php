@@ -32,6 +32,7 @@ Route::middleware(['auth:api', 'role.check:1,2'])->group(function () {
     Route::delete('tasks/{id}', [ProjectApiController::class, 'deleteTask']);
     Route::post('/project-wise-team', [ProjectApiController::class, 'projectWiseTeam']);
 
+    Route::post('get-user-report', [UserApiController::class, 'getUserReport']);
 
 });
 

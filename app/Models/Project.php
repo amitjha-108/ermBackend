@@ -21,4 +21,12 @@ class Project extends Model
         'projectCost',
         'developmentArea',
     ];
+
+    // In App\Models\Project.php
+
+    public function assignedTasks()
+    {
+        return $this->hasMany(AssignedTask::class, 'project_id');
+    }
+
 }
