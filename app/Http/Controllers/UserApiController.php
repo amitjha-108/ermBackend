@@ -842,6 +842,20 @@ class UserApiController extends Controller
         return response()->json(['message' => 'Message sent to all users successfully!'], 200);
     }
 
+    public function getMessage()
+    {
+        $user = auth()->user();
+
+        if ($user->role == 1) {
+            $messages = Message::select('message','user_id')->orderBy('created_at', 'desc')->get();
+        }
+        else {
+            $messages = Message::select('message','user_id')->where('user_id', $user->id)->orderBy('created_at', 'desc')->get();
+        }
+
+        return response()->json(['messages' => $messages], 200);
+    }
+
 
 
 }
