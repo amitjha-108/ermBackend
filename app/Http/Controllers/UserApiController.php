@@ -847,10 +847,22 @@ class UserApiController extends Controller
         $user = auth()->user();
 
         if ($user->role == 1) {
-            $messages = Message::select('message','user_id')->orderBy('created_at', 'desc')->get();
+            $messages = Message::with('user:id,name,email,photo,contact')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($message) {
+                    $message->messageTime = Carbon::parse($message->created_at)->diffForHumans();
+                    return $message;
+                });
         }
         else {
-            $messages = Message::select('message','user_id')->where('user_id', $user->id)->orderBy('created_at', 'desc')->get();
+            $messages = Message::where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($message) {
+                    $message->messageTime = Carbon::parse($message->created_at)->diffForHumans();
+                    return $message;
+                });
         }
 
         return response()->json(['messages' => $messages], 200);
