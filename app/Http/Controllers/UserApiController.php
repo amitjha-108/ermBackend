@@ -868,6 +868,24 @@ class UserApiController extends Controller
         return response()->json(['messages' => $messages], 200);
     }
 
+    public function deleteMessage($id)
+    {
+        $user = auth()->user();
+        $message = Message::find($id);
+
+        if (!$message) {
+            return response()->json(['error' => 'Message not found'], 404);
+        }
+
+        if ($user->role != 1) {
+            return response()->json(['message' => 'You are not authorized to delete this message'], 401);
+        }
+
+        $message->delete();
+
+        return response()->json(['message' => 'Message deleted successfully!'], 200);
+    }
+
 
 
 }
