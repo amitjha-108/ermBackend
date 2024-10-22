@@ -1028,6 +1028,16 @@ class UserApiController extends Controller
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
+        $existingTeamLeader = TeamLeader::where('user_id', $request->user_id)
+                                    ->where('project_id', $request->project_id)
+                                    ->first();
+
+        if ($existingTeamLeader) {
+            return response()->json([
+                'message' => 'This team leader is already assigned to the project',
+                'data' => $existingTeamLeader
+            ], 200);
+        }
 
         $teamLeader = TeamLeader::create([
             'user_id' => $request->user_id,
