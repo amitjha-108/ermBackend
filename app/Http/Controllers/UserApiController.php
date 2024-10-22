@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use App\Models\Message;
 use App\Models\AssignedTask;
 use App\Models\Project;
+use App\Models\TeamLeader;
 
 class UserApiController extends Controller
 {
@@ -63,8 +64,26 @@ class UserApiController extends Controller
             $user->makeHidden('password');
             $token = $user->createToken('auth-token')->accessToken;
 
-            return response()->json(['message' => 'User Logged In Successfully!', 'user' => $user, 'access_token' => $token], 200);
-        } else {
+            // Check if the user’s role is not 1 or 2
+            $isTL = false;
+            if (!in_array($user->role, [1, 2])) {
+                $isTL = TeamLeader::where('user_id', $user->id)->exists();
+            }
+            if($isTL){
+                return response()->json([
+                    'message' => 'User Logged In Successfully!',
+                    'isTL' => $isTL,
+                    'user' => $user,
+                    'access_token' => $token
+                ], 200);
+            }
+            return response()->json([
+                'message' => 'User Logged In Successfully!',
+                'user' => $user,
+                'access_token' => $token
+            ], 200);
+        }
+        else {
             return response()->json(['message' => 'Invalid Credentials'], 200);
         }
     }
@@ -999,6 +1018,24 @@ class UserApiController extends Controller
     }
 
 
+    public function assignTLtoProject(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'project_id' => 'required|exists:projects,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $teamLeader = TeamLeader::create([
+            'user_id' => $request->user_id,
+            'project_id' => $request->project_id,
+        ]);
+
+        return response()->json(['message' => 'Team leader assigned successfully', 'data' => $teamLeader], 201);
+    }
 
 
 

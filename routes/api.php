@@ -32,19 +32,18 @@ Route::middleware(['auth:api', 'role.check:1,2'])->group(function () {
     Route::delete('tasks/{id}', [ProjectApiController::class, 'deleteTask']);
     Route::post('/project-wise-team', [ProjectApiController::class, 'projectWiseTeam']);
 
-    Route::post('get-user-report', [UserApiController::class, 'getUserReport']);
+    Route::post('get-user-report', [UserApiController::class, 'getUserReport']);//adhura
 
-});
-
-//routes accessed by admin , supervisor and super-admin only
-Route::middleware(['auth:api', 'role.check:1,2,3'])->group(function () {
     Route::post('/employees-monthly-attendance', [UserApiController::class, 'getEmployeesMonthlyAttendance']);
     Route::post('/employees-monthly-performance', [UserApiController::class, 'getEmployeesPerformance']);
     Route::post('/rate-employee', [UserApiController::class, 'rateEmployee']);
+    Route::post('/assign-tl-to-project', [UserApiController::class, 'assignTLtoProject']);
+
 });
 
-//routes accessed by user(4), admin(2) , supervisor(3) and super-admin(1) all
-Route::middleware(['auth:api', 'role.check:1,2,3,4'])->group(function () {
+
+//routes accessed by user(4), admin(2) , and super-admin(1) all
+Route::middleware(['auth:api', 'role.check:1,2,4'])->group(function () {
     Route::post('get-employees', [UserApiController::class, 'getEmployees']);
     Route::post('update-profile', [UserApiController::class, 'updateProfile']);
     Route::get('get-clients', [UserApiController::class, 'getClients']);
