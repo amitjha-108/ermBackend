@@ -1047,6 +1047,19 @@ class UserApiController extends Controller
         return response()->json(['message' => 'Team leader assigned successfully', 'data' => $teamLeader], 201);
     }
 
+    public function listTL()
+    {
+        $teamLeaders = TeamLeader::with(['user', 'project'])->get();
+
+        if ($teamLeaders->isEmpty()) {
+            return response()->json(['message' => 'No team leaders found'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Team leaders retrieved successfully',
+            'teamLeaders' => $teamLeaders
+        ], 200);
+    }
 
 
 }

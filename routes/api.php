@@ -38,6 +38,7 @@ Route::middleware(['auth:api', 'role.check:1,2'])->group(function () {
     Route::post('/employees-monthly-performance', [UserApiController::class, 'getEmployeesPerformance']);
     Route::post('/rate-employee', [UserApiController::class, 'rateEmployee']);
     Route::post('/assign-tl-to-project', [UserApiController::class, 'assignTLtoProject']);
+    Route::get('/list-tl', [UserApiController::class, 'listTL']);
 
 });
 
