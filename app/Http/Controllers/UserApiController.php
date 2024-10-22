@@ -66,13 +66,12 @@ class UserApiController extends Controller
 
             // Check if the user’s role is not 1 or 2
             $isTL = false;
-            if (!in_array($user->role, [1, 2])) {
-                $isTL = TeamLeader::where('user_id', $user->id)->exists();
-            }
+            $isTL = TeamLeader::where('user_id', $user->id)->exists();
+            $user->isTL = $isTL;
+
             if($isTL){
                 return response()->json([
                     'message' => 'User Logged In Successfully!',
-                    'isTL' => $isTL,
                     'user' => $user,
                     'access_token' => $token
                 ], 200);
