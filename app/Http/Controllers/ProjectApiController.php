@@ -163,38 +163,42 @@ class ProjectApiController extends Controller
         $userRole = $request->user()->role;
 
         if ($userRole == 1 || $userRole == 2) {
+            // Role 1 or 2: Return all tasks
             $tasks = AssignedTask::with([
                 'employee:id,name,contact',
                 'assignedByUser:id,name',
                 'project:id,name'
             ])->get();
         }
-        elseif ($userRole == 3) {
-            // Get all project IDs assigned to the logged-in user
-            $userProjectIds = AssignedTask::where('empId', $userId)
-                ->pluck('project_id')
-                ->unique();
-
-            // Role 3: List tasks assigned by the user or within the same project(s)
-            $tasks = AssignedTask::with([
-                'employee:id,name,contact',
-                'assignedByUser:id,name',
-                'project:id,name'
-            ])
-            ->where(function($query) use ($userId, $userProjectIds) {
-                $query->where('assignedBy', $userId)
-                      ->orWhereIn('project_id', $userProjectIds);
-            })
-            ->get();
-        }
         elseif ($userRole == 4) {
-            $tasks = AssignedTask::with([
-                'employee:id,name,contact',
-                'assignedByUser:id,name',
-                'project:id,name'
-            ])
-            ->where('empId', $userId)
-            ->get();
+            $isTeamLeader = TeamLeader::where('user_id', $userId)->exists();
+
+            if ($isTeamLeader) {
+                // Get all project IDs where the user is a team leader
+                $teamLeaderProjectIds = TeamLeader::where('user_id', $userId)->pluck('project_id');
+
+                // Return tasks assigned to the user and tasks in the team leader's projects
+                $tasks = AssignedTask::with([
+                    'employee:id,name,contact',
+                    'assignedByUser:id,name',
+                    'project:id,name'
+                ])
+                ->where(function($query) use ($userId, $teamLeaderProjectIds) {
+                    $query->where('empId', $userId)
+                          ->orWhereIn('project_id', $teamLeaderProjectIds);
+                })
+                ->get();
+            }
+            else {
+                // If not a team leader, return only tasks assigned to the user
+                $tasks = AssignedTask::with([
+                    'employee:id,name,contact',
+                    'assignedByUser:id,name',
+                    'project:id,name'
+                ])
+                ->where('empId', $userId)
+                ->get();
+            }
         }
         else {
             return response()->json(['message' => 'Unauthorized'], 403);
@@ -202,6 +206,7 @@ class ProjectApiController extends Controller
 
         return response()->json(['tasks' => $tasks], 200);
     }
+
 
     public function editTask(Request $request, $id)
     {
