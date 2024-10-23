@@ -21,6 +21,8 @@ return new class extends Migration
             $table->string('status')->nullable(); //0=not started, 1= started, 2 =partially completed, 3=completed
             $table->string('projectType')->nullable();
             $table->text('projectDescription')->nullable();
+            $table->string('projectScope')->nullable();
+            $table->string('projectNature')->nullable();
             $table->string('projectCost')->nullable();
             $table->string('developmentArea')->nullable();
             $table->timestamps();

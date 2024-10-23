@@ -20,6 +20,8 @@ class Project extends Model
         'projectDescription',
         'projectCost',
         'developmentArea',
+        'projectScope',
+        'projectNature',
     ];
 
     // In App\Models\Project.php

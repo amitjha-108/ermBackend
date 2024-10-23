@@ -22,6 +22,8 @@ class ProjectApiController extends Controller
             'status' => 'nullable|string',
             'projectType' => 'nullable|string',
             'projectDescription' => 'nullable|string',
+            'projectNature' => 'nullable|string',
+            'projectScope' => 'nullable|mimes:pdf|max:10240',
             'projectCost' => 'nullable|string',
             'developmentArea' => 'nullable|string',
         ]);
@@ -38,9 +40,24 @@ class ProjectApiController extends Controller
             'status' => $request->status,
             'projectType' => $request->projectType,
             'projectDescription' => $request->projectDescription,
+            'projectNature' => $request->projectNature,
             'projectCost' => $request->projectCost,
             'developmentArea' => $request->developmentArea,
         ]);
+
+        if ($request->hasFile('projectScope')) {
+            $folderName = 'projectScope/' . $project->id;
+
+            if ($project->projectScope) {
+                Storage::disk('public')->delete($project->projectScope);
+            }
+            $projectScope = $request->file('projectScope');
+            $filePath = $projectScope->store($folderName, 'public');
+
+            $project->projectScope = $filePath;
+        }
+        $project->save();
+
 
         return response()->json(['message' => 'Project Added Successfully!', 'project' => $project], 201);
     }
@@ -56,6 +73,8 @@ class ProjectApiController extends Controller
             'status' => 'nullable|string',
             'projectType' => 'nullable|string',
             'projectDescription' => 'nullable|string',
+            'projectNature' => 'nullable|string',
+            'projectScope' => 'nullable|mimes:pdf|max:10240',
             'projectCost' => 'nullable|string',
             'developmentArea' => 'nullable|string',
         ]);
@@ -81,7 +100,20 @@ class ProjectApiController extends Controller
             'projectDescription',
             'projectCost',
             'developmentArea',
+            'projectNature',
         ]));
+
+        if ($request->hasFile('projectScope')) {
+            $folderName = 'projectScope/' . $project->id;
+
+            if ($project->projectScope) {
+                Storage::disk('public')->delete($project->projectScope);
+            }
+            $projectScope = $request->file('projectScope');
+            $filePath = $projectScope->store($folderName, 'public');
+
+            $project->projectScope = $filePath;
+        }
 
         return response()->json(['message' => 'Project updated successfully!', 'project' => $project], 200);
     }

@@ -241,7 +241,7 @@ class UserApiController extends Controller
             $user->offerLetter = $offerLetter->store('offerLetter', 'public');
         }
         $user->save();
-
+        $user->makeHidden('password');
         return response()->json(['message' => 'Employee updated successfully!', 'user' => $user], 200);
     }
 
@@ -412,7 +412,7 @@ class UserApiController extends Controller
         $user->password = Hash::make($request->input('password', $user->password));
 
         $user->save();
-
+        $user->makeHidden('password');
         return response()->json(['message' => 'Profile updated successfully!', 'user' => $user], 200);
     }
 
