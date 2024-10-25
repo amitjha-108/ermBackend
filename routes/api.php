@@ -33,6 +33,7 @@ Route::middleware(['auth:api', 'role.check:1,2'])->group(function () {
     Route::post('/project-wise-team', [ProjectApiController::class, 'projectWiseTeam']);
 
     Route::post('get-user-report', [UserApiController::class, 'getUserReport']);//adhura
+    Route::post('get-user-datewise-report', [UserApiController::class, 'userDateWiseReport']);//adhura
 
     Route::post('/employees-monthly-attendance', [UserApiController::class, 'getEmployeesMonthlyAttendance']);
     Route::post('/employees-monthly-performance', [UserApiController::class, 'getEmployeesPerformance']);

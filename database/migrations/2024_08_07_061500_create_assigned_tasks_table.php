@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('priority');
             $table->date('deadline');
             $table->unsignedBigInteger('assignedBy')->constrained('users');
-            $table->string('status');
+            $table->string('status');//0=no-progress,1=in-progress,2=on-hold,3=completed
             $table->time('startTime')->nullable();
             $table->time('endTime')->nullable();
             $table->timestamps();
