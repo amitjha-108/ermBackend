@@ -24,11 +24,16 @@ class Project extends Model
         'projectNature',
     ];
 
-    // In App\Models\Project.php
 
+    // A project can have many assigned tasks
     public function assignedTasks()
     {
         return $this->hasMany(AssignedTask::class, 'project_id');
     }
 
+    // A project can have multiple team leaders
+    public function teamLeaders()
+    {
+        return $this->hasMany(TeamLeader::class, 'project_id');
+    }
 }

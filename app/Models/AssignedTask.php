@@ -20,6 +20,7 @@ class AssignedTask extends Model
         'status',
         'startTime',
         'endTime',
+        'comment',
     ];
 
     // Define the relationship with the Project model

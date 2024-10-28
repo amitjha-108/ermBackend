@@ -287,6 +287,7 @@ class ProjectApiController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'status' => 'required|string|in:0,1,2,3,4,5',
+            'comment' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -305,6 +306,7 @@ class ProjectApiController extends Controller
 
         $task->update([
             'status' => $request->status,
+            'comment' => $request->comment,
         ]);
 
         return response()->json(['message' => 'Task status updated successfully', 'task' => $task], 200);
@@ -408,6 +410,46 @@ class ProjectApiController extends Controller
 
         return response()->json(['teamMembers' => $teamMembers], 200);
     }
+
+    public function tlWiseTeam(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:team_leaders,user_id',
+            'project_id' => 'required|exists:projects,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $userId = $request->input('user_id');
+        $projectId = $request->input('project_id');
+
+        // Check if the user is the team leader for the specified project
+        $isTeamLeader = TeamLeader::where('user_id', $userId)->where('project_id', $projectId)->exists();
+
+        if (!$isTeamLeader) {
+            return response()->json(['message' => 'This user is not the team leader of the specified project'], 200);
+        }
+
+        // Fetch team members assigned to the specified project
+        $teamMembers = AssignedTask::with(['employee','project'])->where('project_id', $projectId)->get()->unique('empId');
+
+        $response = $teamMembers->map(function ($assignedTask) {
+            return [
+                    'id' => $assignedTask->employee->id,
+                    'name' => $assignedTask->employee->name,
+                    'contact' => $assignedTask->employee->contact,
+                    'photo' => $assignedTask->employee->photo,
+                    'designation' => $assignedTask->employee->designation,
+                    'department' => $assignedTask->employee->department,
+                    'assignedProject' => $assignedTask->project,
+            ];
+        });
+
+        return response()->json(['teamMembers' => $response], 200);
+    }
+
 
 
 }

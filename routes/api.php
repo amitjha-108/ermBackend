@@ -18,8 +18,6 @@ Route::middleware(['auth:api', 'role.check:1,2'])->group(function () {
     Route::delete('/clients/{id}', [UserApiController::class, 'deleteClient']);
 
     Route::post('add-project', [ProjectApiController::class, 'addProject']);
-    Route::post('update-projects/{id}', [ProjectApiController::class, 'updateProject']);
-    Route::get('/projects/{id}', [ProjectApiController::class, 'getProjectById']);
     Route::delete('/projects/{id}', [ProjectApiController::class, 'deleteProject']);
 
     Route::get('/list-leave-applications', [UserApiController::class, 'getAllLeaves']);
@@ -31,14 +29,16 @@ Route::middleware(['auth:api', 'role.check:1,2'])->group(function () {
 
     Route::delete('tasks/{id}', [ProjectApiController::class, 'deleteTask']);
     Route::post('/project-wise-team', [ProjectApiController::class, 'projectWiseTeam']);
+    Route::post('/tl-wise-team', [ProjectApiController::class, 'tlWiseTeam']);
 
-    Route::post('get-user-report', [UserApiController::class, 'getUserReport']);//adhura
-    Route::post('get-user-datewise-report', [UserApiController::class, 'userDateWiseReport']);//adhura
+    Route::post('get-user-monthly-report', [UserApiController::class, 'userMonthlyReport']);//adhura
+    Route::post('get-user-datewise-report', [UserApiController::class, 'userDateWiseReport']);
 
     Route::post('/employees-monthly-attendance', [UserApiController::class, 'getEmployeesMonthlyAttendance']);
     Route::post('/employees-monthly-performance', [UserApiController::class, 'getEmployeesPerformance']);
     Route::post('/rate-employee', [UserApiController::class, 'rateEmployee']);
     Route::post('/assign-tl-to-project', [UserApiController::class, 'assignTLtoProject']);
+    Route::post('/remove-tl-from-project', [UserApiController::class, 'removeTLFromProject']);
     Route::get('/list-tl', [UserApiController::class, 'listTL']);
 
 });
@@ -63,4 +63,7 @@ Route::middleware(['auth:api', 'role.check:1,2,4'])->group(function () {
     Route::post('/list-team-members', [ProjectApiController::class, 'listTeamMembers']);
 
     Route::get('/get-message', [UserApiController::class, 'getMessage']);
+
+    Route::post('update-projects/{id}', [ProjectApiController::class, 'updateProject']);
+    Route::get('/projects/{id}', [ProjectApiController::class, 'getProjectById']);
 });

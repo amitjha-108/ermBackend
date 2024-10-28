@@ -42,4 +42,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(Leave::class);
     }
+
+    public function assignedTasks()
+    {
+        return $this->hasMany(AssignedTask::class, 'empId');
+    }
+
+     // A user can be a team leader of multiple projects
+     public function teamLeaderProjects()
+     {
+         return $this->hasMany(TeamLeader::class, 'user_id');
+     }
 }

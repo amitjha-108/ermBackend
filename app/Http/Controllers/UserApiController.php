@@ -943,6 +943,33 @@ class UserApiController extends Controller
         return response()->json(['message' => 'Team leader assigned successfully', 'data' => $teamLeader], 201);
     }
 
+    public function removeTLFromProject(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'project_id' => 'required|exists:projects,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $existingTeamLeader = TeamLeader::where('user_id', $request->user_id)
+                                    ->where('project_id', $request->project_id)
+                                    ->first();
+
+        if (!$existingTeamLeader) {
+            return response()->json([
+                'message' => 'This team leader is not assigned to the project'
+            ], 404);
+        }
+
+        $existingTeamLeader->delete();
+
+        return response()->json(['message' => 'Team leader removed successfully from the project'], 200);
+    }
+
+
     public function listTL(Request $request)
     {
         $query = TeamLeader::with(['user', 'project']);
@@ -965,115 +992,6 @@ class UserApiController extends Controller
         ], 200);
     }
 
-
-    // public function getUserReport(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'user_id' => 'required|integer|exists:users,id',
-    //         'date' => 'nullable|date',
-    //         'month' => 'nullable|date_format:Y-m',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json(['error' => $validator->errors()], 422);
-    //     }
-
-    //     $userId = $request->input('user_id');
-    //     $date = $request->input('date');
-    //     $month = $request->input('month');
-
-    //     // Initialize the report data
-    //     $report = [
-    //         'employeeDetails' => null,
-    //         'ongoingTasks' => 0,
-    //         'completedTasks' => 0,
-    //         'pendingTasks' => 0,
-    //         'totalLeaves' => 0,
-    //         'totalAttendance' => 0,
-    //         'totalLateEntries' => 0,
-    //         'rating' => 0,
-    //         'currentProjects' => [],
-    //         'activeProjects' => [],
-    //     ];
-
-    //     $employee = User::find($userId);
-    //     if ($employee) {
-    //         $report['employeeDetails'] = [
-    //             'name' => $employee->name,
-    //             'contact' => $employee->contact,
-    //             'email' => $employee->email,
-    //             'photo' => $employee->photo,
-    //             'designation' => $employee->designation,
-    //             'department' => $employee->department,
-    //         ];
-    //     }
-
-    //     // Get ongoing, completed, and pending tasks
-    //     $tasksQuery = AssignedTask::where('empId', $userId);
-
-    //     if ($month) {
-    //         $tasksQuery->whereYear('deadline', Carbon::parse($month)->year)->whereMonth('deadline', Carbon::parse($month)->month);
-    //     }
-    //     elseif ($date) {
-    //         $tasksQuery->whereDate('deadline', $date);
-    //     }
-
-    //     $tasks = $tasksQuery->get();
-    //     $report['pendingTasks'] = $tasks->where('status', '0')->count();
-    //     $report['ongoingTasks'] = $tasks->where('status', '1')->count();
-    //     $report['completedTasks'] = $tasks->where('status', '3')->count();
-
-    //     // Get total leaves
-    //     if ($month) {
-    //         $report['totalLeaves'] = Leave::where('user_id', $userId)
-    //                                 ->whereMonth('dates', Carbon::parse($month)->month)->count();
-    //     }
-
-    //     // Get total late entries
-    //     if ($month) {
-    //         $report['totalLateEntries'] = Attendance::where('user_id', $userId)
-    //             ->whereYear('date', Carbon::parse($month)->year)
-    //             ->whereMonth('date', Carbon::parse($month)->month)
-    //             ->whereTime('in_time', '>', '11:00:00')
-    //             ->count();
-    //     }
-
-    //     // Get total attendance
-    //     if ($month) {
-    //         $report['totalAttendance'] = Attendance::where('user_id', $userId)
-    //             ->whereYear('date', Carbon::parse($month)->year)
-    //             ->whereMonth('date', Carbon::parse($month)->month)
-    //             ->count();
-    //     }
-
-    //     // Get employee performance
-    //     $performance = Performance::where('user_id', $userId)
-    //         ->when($month, function ($query) use ($month) {
-    //             return $query->where('month', $month);
-    //         })->first();
-
-    //     if ($performance) {
-    //         $report['rating'] = $performance->rating;
-    //     }
-
-    //     // Get active projects
-    //     $activeProjectsQuery = Project::whereHas('assignedTasks', function ($query) use ($userId) {
-    //         $query->where('empId', $userId)
-    //             ->where('status', '1');
-    //     });
-
-    //     if ($month) {
-    //         $activeProjectsQuery->whereMonth('startDate', '<=', Carbon::parse($month)->month)
-    //                             ->whereMonth('endDate', '>=', Carbon::parse($month)->month);
-    //     }
-
-    //     $report['activeProjects'] = $activeProjectsQuery->get(['id', 'name', 'projectDescription']);
-
-    //     return response()->json([
-    //         'message' => 'User report retrieved successfully',
-    //         'report' => $report,
-    //     ], 200);
-    // }
     public function userDateWiseReport(Request $request){
         $validator = Validator::make($request->all(), [
             'user_id' => 'required|integer|exists:users,id',
@@ -1100,4 +1018,53 @@ class UserApiController extends Controller
             'tasks' => $taskStatuses,
         ], 200);
     }
+
+    public function userMonthlyReport(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|integer|exists:users,id',
+            'month' => 'required|date_format:Y-m',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Parse the month and year from the input
+        $month = Carbon::parse($request->input('month'))->month;
+        $year = Carbon::parse($request->input('month'))->year;
+
+        // Retrieve tasks by their status for the specified year and month
+        $tasks = AssignedTask::with(['project', 'employee', 'assignedByUser'])
+                    ->where('empId', $request->user_id)
+                    ->whereYear('updated_at', $year)
+                    ->whereMonth('updated_at', $month)
+                    ->get();
+
+        $taskStatuses = [
+            'noProgressTask' => [
+                'count' => $tasks->where('status', '0')->count(),
+                'tasks' => $tasks->where('status', '0'),
+            ],
+            'inProgressTask' => [
+                'count' => $tasks->where('status', '1')->count(),
+                'tasks' => $tasks->where('status', '1'),
+            ],
+            'onHoldTask' => [
+                'count' => $tasks->where('status', '2')->count(),
+                'tasks' => $tasks->where('status', '2'),
+            ],
+            'completedTask' => [
+                'count' => $tasks->where('status', '3')->count(),
+                'tasks' => $tasks->where('status', '3'),
+            ],
+        ];
+
+        return response()->json([
+            'message' => 'Tasks for the specified year and month retrieved successfully',
+            'tasks' => $taskStatuses,
+        ], 200);
+    }
+
+
 }
