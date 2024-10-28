@@ -973,25 +973,55 @@ class UserApiController extends Controller
     }
 
 
+    // public function listTL(Request $request)
+    // {
+    //     $query = TeamLeader::with(['user', 'project']);
+
+    //     if ($request->has('project_id')) {
+    //         $query->where('project_id', $request->project_id);
+    //     }
+
+    //     $teamLeaders = $query->get();
+    //     $count = $teamLeaders->count();
+
+    //     if ($count === 0) {
+    //         return response()->json(['message' => 'No team leaders found'], 200);
+    //     }
+
+    //     return response()->json([
+    //         'message' => 'Team leaders retrieved successfully',
+    //         'count' => $count,
+    //         'teamLeaders' => $teamLeaders,
+    //     ], 200);
+    // }
+
     public function listTL(Request $request)
     {
-        $query = TeamLeader::with(['user', 'project']);
+        $query = TeamLeader::with(['user', 'project', 'teamMembers.employee']);
 
         if ($request->has('project_id')) {
             $query->where('project_id', $request->project_id);
         }
 
         $teamLeaders = $query->get();
-        $count = $teamLeaders->count();
 
-        if ($count === 0) {
+        if ($teamLeaders->isEmpty()) {
             return response()->json(['message' => 'No team leaders found'], 200);
         }
 
+        $response = $teamLeaders->map(function ($teamLeader) {
+            return [
+                    'id' => $teamLeader->user->id,
+                    'name' => $teamLeader->user->name,
+                    'user' => $teamLeader->user,
+                    'project' => $teamLeader->project,
+                    'teamMembers' => $teamLeader->teamMembers,
+            ];
+        });
+
         return response()->json([
             'message' => 'Team leaders retrieved successfully',
-            'count' => $count,
-            'teamLeaders' => $teamLeaders,
+            'teamLeaders' => $response,
         ], 200);
     }
 

@@ -20,4 +20,10 @@ class TeamLeader extends Model
         return $this->belongsTo(Project::class);
     }
 
+    public function teamMembers()
+    {
+        return $this->hasMany(AssignedTask::class, 'project_id', 'project_id')->with('employee');
+        // Assuming `employee` is the relation in AssignedTask to fetch employee details
+    }
+
 }
