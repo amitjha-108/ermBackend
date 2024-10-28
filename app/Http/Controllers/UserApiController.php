@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+
 use App\Models\Client;
 use App\Models\User;
 use App\Models\Leave;
@@ -9,7 +13,6 @@ use App\Models\Attendance;
 use App\Models\Performance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
@@ -1066,5 +1069,29 @@ class UserApiController extends Controller
         ], 200);
     }
 
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email|max:255|exists:users,email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Find the user by email
+        $user = User::where('email', $request->email)->first();
+        $newPassword = Str::random(8);
+        $user->password = Hash::make($newPassword);
+        $user->save();
+
+        // Send the new password to the user's email
+        Mail::send('emails.reset_password', ['password' => $newPassword], function ($message) use ($user) {
+            $message->to($user->email)
+                    ->subject('Your Password has been Reset');
+        });
+
+        return response()->json(['message' => 'A new password has been sent to your email address.'], 200);
+    }
 
 }
